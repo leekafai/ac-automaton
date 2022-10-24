@@ -402,7 +402,7 @@ class DictTool {
     })
     if (orSize !== this.keywordsSet.size) {
       // 自动重建词典
-      this._dictBuild()
+      this._BuildFromKeyword()
     }
     return this
   }
@@ -421,21 +421,22 @@ class DictTool {
     })
     if (orSize !== this.keywordsSet.size) {
       // 自动重建词典
-      this._dictBuild()
+      this._BuildFromKeyword()
     }
     return this
   }
   /**
    * 构建ac自动机
    */
-  private _dictBuild() {
+  private _BuildFromKeyword() {
     const builder = new Builder()
 
     for (const kw of this.keywordsSet) {
       builder.add(kw)
     }
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    this.Import(builder.build().export()!)
 
-    this._ac = builder.build()
   }
   /**
    * 导出词典数据
@@ -454,7 +455,7 @@ class DictTool {
    * @returns 
    */
   Match(input: string, limit?: number): string[] {
-    if (!this.keywordsSet.size || !this._ac) {
+    if (!this.dictObject || !this.keywordsSet.size || !this._ac) {
       return []
     }
     const match = this._ac?.matchLimit(input, limit)
@@ -466,7 +467,7 @@ class DictTool {
    * @returns 
    */
   Test(input: string): boolean {
-    if (!this.keywordsSet.size || !this._ac) {
+    if (!this.dictObject || !this.keywordsSet.size || !this._ac) {
       return false
     }
     return Boolean(this._ac?.matchLimit(input, 1)[0])
@@ -497,8 +498,7 @@ class DictTool {
    */
   FromFile(file: string) {
     const dictJson = fs.readJSONSync(file)
-    this._ac = AhoCorasick.from(dictJson)
-    return this
+    return this.Import(dictJson)
   }
 }
 export default DictTool
