@@ -454,6 +454,9 @@ class DictTool {
    * @returns 
    */
   Match(input: string, limit?: number): string[] {
+    if (!this.keywordsSet.size || !this._ac) {
+      return []
+    }
     const match = this._ac?.matchLimit(input, limit)
     return match || []
   }
@@ -463,7 +466,9 @@ class DictTool {
    * @returns 
    */
   Test(input: string): boolean {
-
+    if (!this.keywordsSet.size || !this._ac) {
+      return false
+    }
     return Boolean(this._ac?.matchLimit(input, 1)[0])
 
   }
