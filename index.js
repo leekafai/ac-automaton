@@ -138,6 +138,7 @@ const buildAC = (baseTrie, ac) => {
 const getBase = (ac, index) => {
     var _a;
     const v = ~~((_a = ac.base) === null || _a === void 0 ? void 0 : _a[index]);
+    // console.log(ac.base[index], index, 'a.base', ac.base)
     if (v < 0) {
         return -v;
     }
@@ -226,6 +227,29 @@ const searchLimit = (ac, text, limit = undefined) => {
     }
     return lodash_1.default.uniq(result).sort();
 };
+const Test = (ac, text, limit = undefined) => {
+    let result = false;
+    const codes = bytebuffer_1.default.fromUTF8(text).buffer;
+    let currentIndex = ROOT_INDEX;
+    for (const code of codes) {
+        const nextIndex = getNextIndex(ac, currentIndex, code);
+        if (~~(ac.base[nextIndex]) < 0 || !ac.base[nextIndex]) {
+            result = Boolean(getPattern(ac, nextIndex).length);
+            if (result) {
+                break;
+            }
+        }
+        const outputs = getOutputs(ac, nextIndex);
+        for (const output of outputs) {
+            result = Boolean(output.length);
+            if (result) {
+                break;
+            }
+        }
+        currentIndex = nextIndex;
+    }
+    return result;
+};
 const arrayToInt32Array = (arr) => {
     const int32Array = new Int32Array(arr.length);
     lodash_1.default.forEach(arr, (v, i) => {
@@ -286,6 +310,12 @@ class AhoCorasick {
     constructor(data) {
         this.data = data;
     }
+    test(text) {
+        if (!this.data)
+            return false;
+        return Test(this.data, text, 1);
+        // return searchLimit(this.data, text, 1)
+    }
     match(text) {
         if (!this.data)
             return [];
@@ -339,7 +369,7 @@ class DictTool {
         });
         if (orSize !== this.keywordsSet.size) {
             // 自动重建词典
-            this._dictBuild();
+            this._BuildFromKeyword();
         }
         return this;
     }
@@ -359,19 +389,20 @@ class DictTool {
         });
         if (orSize !== this.keywordsSet.size) {
             // 自动重建词典
-            this._dictBuild();
+            this._BuildFromKeyword();
         }
         return this;
     }
     /**
-     * 构建ac自动机
+     * 从关键词构建ac自动机
      */
-    _dictBuild() {
+    _BuildFromKeyword() {
         const builder = new Builder();
         for (const kw of this.keywordsSet) {
             builder.add(kw);
         }
-        this._ac = builder.build();
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        this.Import(builder.build().export());
     }
     /**
      * 导出词典数据
@@ -390,6 +421,9 @@ class DictTool {
      */
     Match(input, limit) {
         var _a;
+        if (!this.dictObject || !this.keywordsSet.size || !this._ac) {
+            return [];
+        }
         const match = (_a = this._ac) === null || _a === void 0 ? void 0 : _a.matchLimit(input, limit);
         return match || [];
     }
@@ -400,16 +434,25 @@ class DictTool {
      */
     Test(input) {
         var _a;
+        if (!this._ac) {
+            return false;
+        }
+        return this._ac.test(input);
         return Boolean((_a = this._ac) === null || _a === void 0 ? void 0 : _a.matchLimit(input, 1)[0]);
     }
     /**
-     * 导入词典JSON
+     * 导入词典Object，构建AC自动机
      * @param dictObject
      */
     Import(dictObject) {
         this.dictObject = dictObject;
         this._ac = AhoCorasick.from(dictObject);
         return this;
+    }
+    get avaliable() {
+        if (this._ac) {
+            return true;
+        }
     }
     /**
      * 将词典输出到文件
@@ -426,8 +469,7 @@ class DictTool {
      */
     FromFile(file) {
         const dictJson = fs_extra_1.default.readJSONSync(file);
-        this._ac = AhoCorasick.from(dictJson);
-        return this;
+        return this.Import(dictJson);
     }
 }
 exports.default = DictTool;

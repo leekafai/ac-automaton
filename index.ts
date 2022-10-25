@@ -157,6 +157,7 @@ const buildAC = (baseTrie: { children: any[]; pattern?: boolean; index?: number;
 
 const getBase = (ac: DictObject, index: number): number => {
   const v = ~~(ac.base?.[index]);
+  // console.log(ac.base[index], index, 'a.base', ac.base)
   if (v < 0) {
     return -v;
   }
@@ -192,6 +193,7 @@ const getPattern = (ac: DictObject, index: number): number[] => {
   }
   const code = ac.codemap?.[index];
   const parent = ac.check?.[index];
+
   const res = getPattern(ac, ~~(parent));
   res.push(~~code);
   return res;
@@ -218,7 +220,6 @@ const search = (ac: DictObject, text: string) => {
     const nextIndex = getNextIndex(ac, currentIndex, code);
     if (~~(ac.base[nextIndex]) < 0 || !ac.base[nextIndex]) {
       result.push(convert(getPattern(ac, nextIndex)) as never);
-
     }
     const outputs = getOutputs(ac, nextIndex);
     _.forEach(outputs, (output) => {
@@ -234,13 +235,13 @@ const searchLimit = (ac: DictObject, text: string, limit: number | undefined = u
   let currentIndex = ROOT_INDEX;
   for (const code of codes) {
     const nextIndex = getNextIndex(ac, currentIndex, code);
-
     if (~~(ac.base[nextIndex]) < 0 || !ac.base[nextIndex]) {
       const l = result.push(convert(getPattern(ac, nextIndex)) as never);
       if (l === limit) {
         break
       }
     }
+
     const outputs = getOutputs(ac, nextIndex);
     for (const output of outputs) {
       const l = result.push(convert(output) as never);
@@ -251,6 +252,30 @@ const searchLimit = (ac: DictObject, text: string, limit: number | undefined = u
     currentIndex = nextIndex;
   }
   return _.uniq(result).sort();
+};
+const Test = (ac: DictObject, text: string, limit: number | undefined = undefined) => {
+  let result = false;
+  const codes = ByteBuffer.fromUTF8(text).buffer;
+  let currentIndex = ROOT_INDEX;
+  for (const code of codes) {
+    const nextIndex = getNextIndex(ac, currentIndex, code);
+    if (~~(ac.base[nextIndex]) < 0 || !ac.base[nextIndex]) {
+      result = Boolean(getPattern(ac, nextIndex).length)
+      if (result) {
+        break
+      }
+    }
+
+    const outputs = getOutputs(ac, nextIndex);
+    for (const output of outputs) {
+      result = Boolean(output.length)
+      if (result) {
+        break
+      }
+    }
+    currentIndex = nextIndex;
+  }
+  return result
 };
 const arrayToInt32Array = (arr: number[]) => {
   const int32Array = new Int32Array(arr.length);
@@ -342,7 +367,12 @@ class AhoCorasick {
   constructor(data?: DictObject) {
     this.data = data;
   }
+  test(text: string) {
+    if (!this.data) return false
+    return Test(this.data, text, 1)
+    // return searchLimit(this.data, text, 1)
 
+  }
   match(text: string) {
     if (!this.data) return []
     return search(this.data, text);
@@ -426,7 +456,7 @@ class DictTool {
     return this
   }
   /**
-   * 构建ac自动机
+   * 从关键词构建ac自动机
    */
   private _BuildFromKeyword() {
     const builder = new Builder()
@@ -466,15 +496,17 @@ class DictTool {
    * @param input 
    * @returns 
    */
-  Test(input: string): boolean {
-    if (!this.dictObject || !this.keywordsSet.size || !this._ac) {
+  Test(input: string) {
+
+    if (!this._ac) {
       return false
     }
+    return this._ac.test(input)
     return Boolean(this._ac?.matchLimit(input, 1)[0])
 
   }
   /**
-   * 导入词典JSON
+   * 导入词典Object，构建AC自动机
    * @param dictObject 
    */
   Import(
@@ -483,6 +515,11 @@ class DictTool {
     this.dictObject = dictObject
     this._ac = AhoCorasick.from(dictObject)
     return this
+  }
+  get avaliable() {
+    if (this._ac) {
+      return true
+    }
   }
   /**
    * 将词典输出到文件

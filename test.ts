@@ -119,16 +119,45 @@ import path from 'node:path'
 import DictTool from ".";
 const dict = new DictTool()
 dict.Add(['1', '2', '3', '甲亢'])
-const words = dict.Match('我得甲亢，吃西药已九个多月了。听说贵院一种中药，吃一颗就可以制好。我的病是典型甲亢。我的病可以吃这种药吗？1')
-console.log(words)
-const dictFile = path.join(__dirname, 'dict.json')
-dict.ToFile(dictFile)
-dict.Delete(['1'])
-const words2 = dict.Match('我得甲亢，吃西药已九个多月了。听说贵院一种中药，吃一颗就可以制好。我的病是典型甲亢。我的病可以吃这种药吗？1')
-console.log(words2)
-// const json = dict.Export()
-// console.log(json)
+for (let i = 0; i < 1e4; i++) {
+  dict.Match('我得甲亢，吃西药已九个多月了。听说贵院一种中药，吃一颗就可以制好。我的病是典型甲亢。我的病可以吃这种药吗？1', 1)
+  dict.Test('我得甲亢，吃西药已九个多月了。听说贵院一种中药，吃一颗就可以制好。我的病是典型甲亢。我的病可以吃这种药吗？1')
+}
 
-dict.FromFile(dictFile)
-const words3 = dict.Match('我得甲亢，吃西药已九个多月了。听说贵院一种中药，吃一颗就可以制好。我的病是典型甲亢。我的病可以吃这种药吗？1')
-console.log(words3)
+
+
+console.time('Test')
+
+for (let i = 0; i < 5e4; i++) {
+  dict.Test('我得甲亢，吃西药已九个多月了。听说贵院一种中药，吃一颗就可以制好。我的病是典型甲亢。我的病可以吃这种药吗？1')
+}
+console.timeEnd('Test')
+
+console.time('Match1')
+
+for (let i = 0; i < 5e4; i++) {
+  dict.Match('我得甲亢，吃西药已九个多月了。听说贵院一种中药，吃一颗就可以制好。我的病是典型甲亢。我的病可以吃这种药吗？1', 1)
+}
+console.timeEnd('Match1')
+
+
+// console.time('Match2')
+
+// for (let i = 0; i < 5e4; i++) {
+//   dict.Match('甲亢', 1)
+// }
+// console.timeEnd('Match2')
+
+// const words = dict.Test('甲亢')
+// console.log(words, 'words')
+// const dictFile = path.join(__dirname, 'dict.json')
+// dict.ToFile(dictFile)
+// dict.Delete(['1'])
+// const words2 = dict.Match('我得甲亢，吃西药已九个多月了。听说贵院一种中药，吃一颗就可以制好。我的病是典型甲亢。我的病可以吃这种药吗？1')
+// console.log(words2)
+// // const json = dict.Export()
+// // console.log(json)
+
+// dict.FromFile(dictFile)
+// const words3 = dict.Match('我得甲亢，吃西药已九个多月了。听说贵院一种中药，吃一颗就可以制好。我的病是典型甲亢。我的病可以吃这种药吗？1')
+// console.log(words3)
