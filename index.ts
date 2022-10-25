@@ -72,7 +72,6 @@ const buildDoubleArray = (rootIndex: number,
   const stack = [{ state: baseTrie, index: rootIndex }];
 
   while (!_.isEmpty(stack)) {
-    // console.log(doubleArray, 'doubleArray')
     const c = stack.pop()
     if (c) {
       const { state, index } = c;
@@ -125,6 +124,7 @@ const buildAC = (baseTrie: { children: any[]; pattern?: boolean; index?: number;
   const queue: any[] = [];
   _.forEach(baseTrie.children, (child) => {
     child.failurelink = baseTrie;
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     ac.failurelink[child.index] = ~~(baseTrie.index!);
     queue.push(child as never);
   });
@@ -157,7 +157,6 @@ const buildAC = (baseTrie: { children: any[]; pattern?: boolean; index?: number;
 
 const getBase = (ac: DictObject, index: number): number => {
   const v = ~~(ac.base?.[index]);
-  // console.log(ac.base[index], index, 'a.base', ac.base)
   if (v < 0) {
     return -v;
   }
@@ -229,6 +228,7 @@ const search = (ac: DictObject, text: string) => {
   });
   return _.uniq(result).sort();
 };
+
 const searchLimit = (ac: DictObject, text: string, limit: number | undefined = undefined) => {
   const result: string[] = [];
   const codes = ByteBuffer.fromUTF8(text).buffer;
@@ -253,14 +253,15 @@ const searchLimit = (ac: DictObject, text: string, limit: number | undefined = u
   }
   return _.uniq(result).sort();
 };
-const Test = (ac: DictObject, text: string, limit: number | undefined = undefined) => {
+
+const Test = (ac: DictObject, text: string) => {
   let result = false;
   const codes = ByteBuffer.fromUTF8(text).buffer;
   let currentIndex = ROOT_INDEX;
   for (const code of codes) {
     const nextIndex = getNextIndex(ac, currentIndex, code);
     if (~~(ac.base[nextIndex]) < 0 || !ac.base[nextIndex]) {
-      result = Boolean(getPattern(ac, nextIndex).length)
+      result = getPattern(ac, nextIndex).length > 0
       if (result) {
         break
       }
@@ -268,7 +269,7 @@ const Test = (ac: DictObject, text: string, limit: number | undefined = undefine
 
     const outputs = getOutputs(ac, nextIndex);
     for (const output of outputs) {
-      result = Boolean(output.length)
+      result = output.length > 0
       if (result) {
         break
       }
@@ -369,7 +370,7 @@ class AhoCorasick {
   }
   test(text: string) {
     if (!this.data) return false
-    return Test(this.data, text, 1)
+    return Test(this.data, text)
     // return searchLimit(this.data, text, 1)
 
   }

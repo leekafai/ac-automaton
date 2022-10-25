@@ -30,6 +30,16 @@ for (let i = 0; i < 5e4; i++) {
     dict.Match('我得甲亢，吃西药已九个多月了。听说贵院一种中药，吃一颗就可以制好。我的病是典型甲亢。我的病可以吃这种药吗？1', 1);
 }
 console.timeEnd('Match1');
+console.time('2');
+for (let i = 0; i < 1e4; i++) {
+    1 > 0;
+}
+console.timeEnd('2');
+console.time('1');
+for (let i = 0; i < 1e4; i++) {
+    Boolean(1);
+}
+console.timeEnd('1');
 // console.time('Match2')
 // for (let i = 0; i < 5e4; i++) {
 //   dict.Match('甲亢', 1)

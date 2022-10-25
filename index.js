@@ -64,7 +64,6 @@ const buildBaseTrie = (sortedKeys) => {
 const buildDoubleArray = (rootIndex, baseTrie, doubleArray) => {
     const stack = [{ state: baseTrie, index: rootIndex }];
     while (!lodash_1.default.isEmpty(stack)) {
-        // console.log(doubleArray, 'doubleArray')
         const c = stack.pop();
         if (c) {
             const { state, index } = c;
@@ -106,6 +105,7 @@ const buildAC = (baseTrie, ac) => {
     const queue = [];
     lodash_1.default.forEach(baseTrie.children, (child) => {
         child.failurelink = baseTrie;
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         ac.failurelink[child.index] = ~~(baseTrie.index);
         queue.push(child);
     });
@@ -138,7 +138,6 @@ const buildAC = (baseTrie, ac) => {
 const getBase = (ac, index) => {
     var _a;
     const v = ~~((_a = ac.base) === null || _a === void 0 ? void 0 : _a[index]);
-    // console.log(ac.base[index], index, 'a.base', ac.base)
     if (v < 0) {
         return -v;
     }
@@ -227,21 +226,21 @@ const searchLimit = (ac, text, limit = undefined) => {
     }
     return lodash_1.default.uniq(result).sort();
 };
-const Test = (ac, text, limit = undefined) => {
+const Test = (ac, text) => {
     let result = false;
     const codes = bytebuffer_1.default.fromUTF8(text).buffer;
     let currentIndex = ROOT_INDEX;
     for (const code of codes) {
         const nextIndex = getNextIndex(ac, currentIndex, code);
         if (~~(ac.base[nextIndex]) < 0 || !ac.base[nextIndex]) {
-            result = Boolean(getPattern(ac, nextIndex).length);
+            result = getPattern(ac, nextIndex).length > 0;
             if (result) {
                 break;
             }
         }
         const outputs = getOutputs(ac, nextIndex);
         for (const output of outputs) {
-            result = Boolean(output.length);
+            result = output.length > 0;
             if (result) {
                 break;
             }
@@ -313,7 +312,7 @@ class AhoCorasick {
     test(text) {
         if (!this.data)
             return false;
-        return Test(this.data, text, 1);
+        return Test(this.data, text);
         // return searchLimit(this.data, text, 1)
     }
     match(text) {

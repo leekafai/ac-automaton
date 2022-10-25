@@ -140,6 +140,21 @@ for (let i = 0; i < 5e4; i++) {
 }
 console.timeEnd('Match1')
 
+console.time('2')
+
+for (let i = 0; i < 1e4; i++) {
+  1 > 0
+}
+console.timeEnd('2')
+
+console.time('1')
+
+for (let i = 0; i < 1e4; i++) {
+  Boolean(1)
+}
+console.timeEnd('1')
+
+
 
 // console.time('Match2')
 
