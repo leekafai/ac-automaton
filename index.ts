@@ -486,7 +486,7 @@ class DictTool {
    * @returns 
    */
   Match(input: string, limit?: number): string[] {
-    if (!this.dictObject || !this.keywordsSet.size || !this._ac) {
+    if (!this.dictObject || !this._ac) {
       return []
     }
     const match = this._ac?.matchLimit(input, limit)

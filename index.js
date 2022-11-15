@@ -420,7 +420,7 @@ class DictTool {
      */
     Match(input, limit) {
         var _a;
-        if (!this.dictObject || !this.keywordsSet.size || !this._ac) {
+        if (!this.dictObject || !this._ac) {
             return [];
         }
         const match = (_a = this._ac) === null || _a === void 0 ? void 0 : _a.matchLimit(input, limit);
